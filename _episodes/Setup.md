@@ -29,16 +29,13 @@ This course assumes that you have basic proficiency in python.
 Software requirements
 <!-- TODO: Review requirements -->
 - Python 3.8+ with the following modules
-  - pylint
   - numpy
-  - numpy-testing
-  - pytest
-  - pytest-cov
-  - pdoc
-  - scalene
   - pandas
   - matplotlib
-  - jupyter (optional but nice)
+  - jupyter
+  - sklearn
+  - skforecast
+  - kaggle
 - A integrated development environment ([IDE](https://en.wikipedia.org/wiki/Integrated_development_environment)) or text editor of choice
   - We recommend [PyCharm](https://www.jetbrains.com/pycharm/) or [Visual Studio Code](https://code.visualstudio.com/)
 - An operating system which gives you a proper command line
