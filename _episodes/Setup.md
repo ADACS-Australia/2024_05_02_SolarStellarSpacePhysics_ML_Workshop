@@ -30,6 +30,7 @@ Software requirements
 <!-- TODO: Review requirements -->
 - Python 3.8+ with the following modules
   - numpy
+  - astropy
   - pandas
   - matplotlib
   - jupyter
