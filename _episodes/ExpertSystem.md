@@ -19,6 +19,10 @@ Observations with the Solar Dynamics Observatory ([SDO](https://sdo.gsfc.nasa.go
 
 Our task is to search these images and look for wave fronts which represent ... TODO
 
+
+![AI, ML, and DL]({{page.root}}{% link fig/AI_ML_DL.png %})
+<!-- Credit to https://medium.com/analytics-vidhya/ai-ml-dl-whats-what-ecb354967e63 -->
+
 In this workshop we will design and old school class of AI (Artificial Intelligence) - an expert system.
 This system will be designed to replicate the analysis process conducted by an expert who is familiar with the data and the task at hand.
 As such, we'll first be doing some work manually to understand what features of the images are important to the task, and then doing some computing work to design a system that replicates our HI (Human Intelligence).
