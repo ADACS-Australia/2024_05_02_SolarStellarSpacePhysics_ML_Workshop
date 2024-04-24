@@ -1,5 +1,5 @@
 ---
-title: "Task Background and Data Download"
+title: "Task Background for session 2"
 teaching: 15
 exercises: 30
 questions:
@@ -60,5 +60,24 @@ The first (un-named) column is the row index.
 Steps:
 - Load data using numpy
 - Create time/counts data sets
-- Smooth the counts using a 3rd order polynomial
-- Remove the first/last few entries as the smoothing does strange things to them
+- Decompose the data into trend/season/residual
+- Work on trend data (trim as required)
+- Discuss our goal
+    - predicting trend data 1 yr in advance
+- Discuss methods
+    - Regression
+    - Measuring success
+    - Decision trees
+    - Random forests
+    - Timeseries predictors
+- Start with conditioning our data
+    - normalisation
+    - looking for missing data (there is none)
+    - split into train/test sets
+        - take 80/20 train test
+- feature selection
+    - linear model based on history
+    - look for periodicity = correlation between features (lags)
+- train, test, and validation discussion
+- split train into train/validate
+
