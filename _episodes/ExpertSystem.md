@@ -303,18 +303,232 @@ To do this we take our function from above and shuffle each of the columns downw
 In this process we'll be shuffling the entire image which means that the current horizontal waves which are the noise will become curved.
 Thus if we want to sum along our path we can use `np.sum(axis=?)` and get a nice profile of our potential signal.
 
+### Reproject the data and aggregate
+
+We'll shuffle the data along the time axis, one slice at a time, using the `np.roll()` function.
+This will take care of all the boundary problems that we might have.
+
+~~~
+times =  # your function from above
+offsets = np.int64(times)  # Convert to integers so we can use as an index
+
+rolled = cropped_data.copy()  # copy data incase we make a boo-boo
+mid = cropped_data.shape[0]//2  # determine the mid point of the vertical axis
+for i in range(rolled.shape[1]):
+    rolled[:,i]=np.roll(rolled[:,i],
+                 -offsets[i] + mid)  # Cause our signal to lie in the middle of our plot
+~~~
+{: .language-python}
 
 
+With the above implemented we should see something like the below:
 
+![Reprojected]({{page.root}}{% link fig/Reprojected.png %})
 
-- reprojecting the image so that the signal of interest is aligned with our coordinate axes
-- sum along our coordinate axes
-- boom, signal is there (or not)
+Now if we sun across the distance dimension we should be able to accumulate the signal and wash out the noise.
+
+~~~
+summed = rolled.sum(axis=1)  # Sum over distance
+
+# plot
+fig, ax = plt.subplots(figsize=(15,9))
+ax.plot(summed)
+
+# add lines to draw attention
+ax.axvline(mid+5, lw=2, color='red')
+ax.axvline(mid-5, lw=2, color='red')
+
+ax.set_xlabel('Wared Time')
+ax.set_ylabel("Sum over distance")
+ax.set_title("Summed data")
+plt.show()
+~~~
+{: .language-python}
+
+![Summed data]({{page.root}}{% link fig/Summed.png %})
+
+Within the red bars above we see a farily impressive signal that is different from anything outside the red bars.
+
+We can determine the location of this potential signal by looking at the max value and location:
+
+~~~
+peak_val = np.max(summed)
+peak_index = np.argmax(summed)
+print(f"Peak of {peak_val:5.2f} found at {peak_index}")
+~~~
+{: .language-python}
+
+> ## What next?
+> We could use a matched filter. TODO
+{: .challenge}
 
 ## Creating a signal detection metric
 
-- max of spectrum?
-- matched filter to our signal profile?
+What we would really like to have is a single metric that we can use to determine if there was a detection or not.
+With some modification to our above method we can do this.
+
+For example, we are not looking to characterise our signal, so it's strength is un important to us onlt it's presence.
+We have already normalised the data set once, so there isn't any harm in repeating this again.
+
+Instead of using the sum of our data we can use the mean instead:
+
+~~~
+d_stat = np.mean(rolled, axis=1)
+~~~
+{: .language-python}
+
+
+## Recap and consolidation
+
+Let us recap what we have done so far in the form of some functions that will allow us to reproduce our work easily:
+
+> ## Our functions
+> ~~~
+> def read_scaled_data(filename: str):
+>     """
+>     Read and scale data from the given filename.
+>     
+>     Parameters
+>     ----------
+>     filename : str
+>         File to open
+>         
+>     Returns
+>     -------
+>     hdr, data : fitsheader, np.ndarray
+>         The fits header and the image data.
+>     """
+>     img = fits.open(filename)
+>     data = zscore(img[0].data)
+>     return img[0].header, data
+> 
+> 
+> def crop_data(img, start=25, step=50):
+>     """
+>     Crop the image data using default options
+>     
+>     Parameters
+>     ----------
+>     start, step : int
+>         The start point of the crop and the size
+>         
+>     Returns
+>     -------
+>     start : int
+>         The offset into the array for the crop
+>         
+>     data : n.ndarray
+>         The cropped data
+>     """
+>     return start, img[:,start:start+step]
+> 
+> 
+> def get_time_offsets(distances, zeropoint):
+>     """
+>     Calculate the time offsets according to our relation
+>     
+>     parameters
+>     ----------
+>     distances : np.array
+>         An array of distances (indexes)
+>         
+>     zeropoint : int
+>         An offset for our function in the case that we are working
+>         with cropped data
+>         
+>     returns
+>     -------
+>     times : np.array
+>         An array (of ints) which are the time offsets
+>     """
+>     times = 5*(distances+zeropoint)**0.5
+>     return np.int64(times)
+> 
+> 
+> def roll_data(data, offsets):
+>     """
+>     Shuffle the data according to the given offsets to (hopefully)
+>     make the signal of interest more prominent
+>     
+>     parameters
+>     ----------
+>     data : np.ndarray
+>         2d image data
+>         
+>     offsets : np.array
+>         An array of ints which are the offsets to be applied
+>         
+>     returns
+>     -------
+>     rolled : np.ndarray
+>         The shuffled data
+>     """
+>     rolled = data.copy()
+>     for i in range(rolled.shape[1]):
+>         rolled[:,i]=np.roll(rolled[:,i], -offsets[i])
+>     return rolled
+> ~~~
+> {: .language-python}
+>
+{: .solution}
+
+With our above functions we can then look at the detection metric for **all** the files in our data directory.
+
+> ## Combine the whole workflow together into a single function
+> Combine all the above functions together to complete the following function
+>
+> ~~~
+> def process_file(fname):
+>     """
+>     Compute our detection metric on the given file
+>     
+>     parameters
+>     ----------
+>     fname : str
+>         Filename to load
+>         
+>     returns
+>     -------
+>     zeropoint : int
+>         The offset into the dataset that we are 
+>         
+>     best_stat : float
+>         The maximum of the detection statistic
+>     """
+>     hdr, data = read_scaled_data(fname)
+> 
+>     ...
+> 
+>     return zeropoint, best_stat
+> ~~~
+> {: .language-python}
+>
+> > ## Suggested solution
+> > ~~~
+> > def process_file(fname):
+> >     """
+> >     ...
+> >     """
+> >     hdr, data = read_scaled_data(fname)
+> > 
+> >     zeropoint, cropped_data = slice_data(data)
+> > 
+> >     distances = np.arange(data.shape[1])
+> > 
+> >     t_offsets = get_time_offsets(distances,zeropoint)
+> > 
+> >     if flip:
+> >         cropped_data = cropped_data[::-1,:]
+> >     cropped_data = roll_data(cropped_data, t_offsets)
+> > 
+> >     d_stat = np.mean(cropped_data, axis=1)
+> > 
+> >     best_stat=np.max(d_stat)
+> >     return zeropoint, best_stat
+> > ~~~
+> > {: .language-python}
+>  {: .solution}
+{: .challenge}
 
 ## Determining signal vs noise
 
