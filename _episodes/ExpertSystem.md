@@ -55,6 +55,7 @@ Finally, you can use the Jupyter extension to [VSCode](https://code.visualstudio
 > %matplotlib inline
 > # builtins
 > import os
+> from glob import glob
 > 
 > # 3rd party libraries
 > from astropy.io import fits
@@ -489,9 +490,6 @@ With our above functions we can then look at the detection metric for **all** th
 >         
 >     returns
 >     -------
->     zeropoint : int
->         The offset into the dataset that we are 
->         
 >     best_stat : float
 >         The maximum of the detection statistic
 >     """
@@ -499,7 +497,7 @@ With our above functions we can then look at the detection metric for **all** th
 > 
 >     ...
 > 
->     return zeropoint, best_stat
+>     return best_stat
 > ~~~
 > {: .language-python}
 >
@@ -524,32 +522,215 @@ With our above functions we can then look at the detection metric for **all** th
 > >     d_stat = np.mean(cropped_data, axis=1)
 > > 
 > >     best_stat=np.max(d_stat)
-> >     return zeropoint, best_stat
+> >     return best_stat
 > > ~~~
 > > {: .language-python}
 >  {: .solution}
 {: .challenge}
 
+
+With this all in one handy fucntion we can now easily apply our workflow to all the files in our `data` directory.
+
+> ## Compute the detection statistic for all the files
+> Use the following code to apply our `process_file()` function
+> to all the files that we have been provided:
+> ~~~
+> files = glob('data/*.fits')
+> fnames = []
+> stats = []
+> for f in files:
+>     basename = os.path.basename(f)  # Filename without the path
+>     best_stat = process_file(f)
+>     fnames.append(basename)
+>     stats.append(best_stat)
+> 
+> # save to a data frame
+> results = pd.DataFrame({'filename':fnames,'stat':stats})
+> ~~~
+> {: .language-python}
+>
+{: .challenge}
+
+
+> ## Plotting our solution
+> ~~~
+> fig, ax = plt.subplots(figsize=(15,9))
+> ax.plot(results['filename'], results['stat'])
+> ax.set_xlabel("Dataset")
+> ax.set_ylabel("Detection Statistic")
+> ax.set_title("Detection stat for all files")
+> ax.set_ylim([0,1.5])
+> plt.xticks(rotation=90)
+> plt.savefig("DetectionStat.png")
+> plt.show()
+> ~~~
+> {: .language-python}
+{: .solution}
+
+We now have a number for each of our files resulting in the follwoing plot.
+
+![Detection Statistic]({{page.root}}{% link fig/DetectionStat.png %})
+
+> ## Discuss
+> - Which of the above files have the feature of interest?
+> - At what level of detection statstic do we decide that we have a detection?
+> 
+> Discuss amoung yourselves and add some notes to the [etherpad]({{site.etherpad}})
+>
+{: .discusison}
+
+
 ## Determining signal vs noise
 
-- making images with no signal via flipping
-- using images with no known signal (thanks to expert)
-- measuring our detection metric
-- set threshold of noise +/- sigma
+What we really need here is an example of data that has only noise but no signal.
+There are a couple of ways that we can do this:
+1. Obtain new data that has no signal
+2. Simulate new data that is just noise
+3. Remove or obscure the signal in our existing data
 
-## Measure the effectiveness of our detection algorithm
+Of the above: (1) could be costly as it could require extra observations, or time consuming because we have to process a lot more data, (2) is only effective if we have a really good understanding of the noise which can be as difficult as understanding the signal iteslf.
 
-- comparison with expert system
-- precision, recall, confusion matrix
-- the ROC
+Let's investigate option 3 and then we'll come back to option 1.
+
+Within our TODO directory there is also a set of files which are known to have no signal present.
+
+> ## Process all the files in the part2 directory
+> Based on the code above:
+> - compute the detection satistic for all the files in the `data/part2` directory
+> - save the results in a data frame called `nullresults`
+> - plot the results
+>
+{: .challenge}
+
+The null results are helpful but with only a few examples we aren't really getting a good measure of what *noise* looks like.
+
+### Hiding our signal
+
+Our signal of interest has a particular shape within our data.
+We don't need to completely remove the signal from our data, but we need to hide it from our algorithm.
+Understanding what our signal looks like and how our algorithm works gives us an advantage here.
+
+Our signal follows a roughly $t \propto \sqrt(d)$ relation and we shift all our data to account for this.
+If we were to invert our data along the time or distance dimension and perform the same shifting, then we will mix our signal in the same way that we mix the noise.
+Let's try this out now.
+
+> ## Modify the proces_file function
+> Modify the function so that:
+> - it has an optional parameter `flip` and is default set to `False`
+> - if the `flip` parameter is `True` then the data will be inverted after reading
+> - all other processing should then proceed as normal.
+>
+> > ## My solution
+> > ~~~
+> > def process_file(fname, flip=False):
+> >     """
+> >     Compute our detection metric on the given file
+> >     
+> >     parameters
+> >     ----------
+> >     fname : str
+> >         Filename to load
+> >         
+> >     flip : bool
+> >         If true then flip the data before processing
+> >         Default = False
+> >         
+> >     returns
+> >     -------
+> >     zeropoint : int
+> >         The offset into the dataset that we are 
+> >         
+> >     best_stat : float
+> >         The maximum of the detection statistic
+> >     """
+> >     hdr, data = read_scaled_data(fname)
+> > 
+> >     zeropoint, cropped_data = crop_data(data)
+> > 
+> >     distances = np.arange(data.shape[1])
+> > 
+> >     t_offsets = get_time_offsets(distances,zeropoint)
+> > 
+> >     if flip:
+> >         cropped_data = cropped_data[::-1,:]  # Flip along time axis
+> >     cropped_data = roll_data(cropped_data, t_offsets)
+> > 
+> >     d_stat = np.mean(cropped_data, axis=1)
+> > 
+> >     best_stat=np.max(d_stat)
+> >     return best_stat
+> > ~~~
+> > {: .language-python}
+> {: .solution}
+{: .challenge}
+
+Now we can re-run our processing as before but with the flipped data to see what a detection stat is measured when there is no signal.
+
+~~~
+def get_results(flip=False):
+    files = glob('data/*.fits')
+    fnames = []
+    stats = []
+    for f in files:
+        basename = os.path.basename(f)
+        best_stat = process_file(f, flip=flip)
+        fnames.append(basename)
+        stats.append(best_stat)
+    results = pd.DataFrame({'filename':fnames, 'stat':stats})
+    return results
+
+results_flipped = get_results(flip=True)
+~~~
+{: .language-python}
+
+> ## Plotting code
+> ~~~
+> fig, ax = plt.subplots(figsize=(15,9))
+> ax.plot(results['filename'], results['stat'], label="Feature")
+> ax.plot(results_flipped['filename'], results_flipped['stat'], > label="No Feature")
+> ax.hlines(threshold,xmin = ax.get_xlim()[0], xmax = ax.get_xlim()[1], color='red', label='3σ detection threshold')
+> ax.set_xlabel("Dataset")
+> ax.set_ylabel("Detection Statistic")
+> ax.set_ylim([0,1.5])
+> plt.xticks(rotation=90)
+> ax.legend()
+> plt.savefig('DetectionStat_Flipped.png')
+> plt.show()
+> ~~~
+> {: .language-python}
+{: .solution}
+
+![Detection with threshold and flipped data]({{page.root}}{% link fig/DetectionStat_flipped.png %})
+
+> ## Discuss
+> - Which of the files have a detection according to our algorithm?
+> - Have a look at the `.png` files that included with the data and see if you agree with these detections and non-detections.
+>
+{: .discussion}
+
+
+
+> ## Optional extra
+> - Measure the effectiveness of our detection algorithm vs your own ability
+> - TODO (accuracy, recall, etc)
+>
+{: .challenge}
 
 ## Future work
 
-- higher resolution images
-- interpolating to make the re-projection more accurate (avoid round offs)
-- additional "trials" of the $t/d$ relation
-- larger data set for training
+We have a detection algorithm that works ok.
+It could easily be better if we spent some more time crafting it, but for a few hours of work we have done rather well.
+
+Some suggestions for improvements are:
+- Obtaining or craating higher resolution images
+- Determinig the t vs d relation more accurately (based on physics, using real units)
+- Using interpolation to make the re-projection step more accurate (recall we rounded to the nearest int)
+- A larger data set for training both the detection vs not-detection scores
 - Using more than a single point of reference in the image (multiple crops)
-- building a characterization machine
+
 
 ## Wrap up
+
+Using the [etherpad]({{site.etherpad}}) make some notes about other ways that you would suggest improving the algorithm.
+If you have ideas about python packages or functions that might be useful then note them down as well.
+
