@@ -8,8 +8,7 @@ questions:
 objectives:
 - "Understand the task goal and obtain the relevant data"
 keypoints:
-- "Ask questions, experiment, and help others"
-- "Everyone is here to learn and that means making mistakes"
+- "TODO Ask questions, experiment, and help others"
 ---
 
 ## Task background
@@ -700,7 +699,7 @@ results_flipped = get_results(flip=True)
 > {: .language-python}
 {: .solution}
 
-![Detection with threshold and flipped data]({{page.root}}{% link fig/DetectionStat_flipped.png %})
+![Detection with threshold and flipped data]({{page.root}}{% link fig/DetectionStat_Flipped.png %})
 
 > ## Discuss
 > - Which of the files have a detection according to our algorithm?
