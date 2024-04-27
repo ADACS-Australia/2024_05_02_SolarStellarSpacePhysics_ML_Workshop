@@ -28,7 +28,7 @@ This course assumes that you have basic proficiency in python.
 
 Software requirements
 <!-- TODO: Review requirements -->
-- Python 3.8+ with the following modules
+- Python 3.8+ with the following modules ([requirements.txt]({{page.root}}{% link data/requirements.txt%}))
   - numpy
   - astropy
   - pandas
@@ -38,15 +38,10 @@ Software requirements
   - skforecast
   - kaggle
 - A integrated development environment ([IDE](https://en.wikipedia.org/wiki/Integrated_development_environment)) or text editor of choice
-  - We recommend [PyCharm](https://www.jetbrains.com/pycharm/) or [Visual Studio Code](https://code.visualstudio.com/)
-- An operating system which gives you a proper command line
-  - For windows this means using something like [gitbash](https://gitforwindows.org/), [WSL](https://docs.microsoft.com/en-us/windows/wsl/install), or the [Anaconda](https://www.anaconda.com/) prompt
-  - For OSX or Linux the regular terminal will be fine
+  - We recommend [Visual Studio Code](https://code.visualstudio.com/)
 
 Assumed knowledge (links for info)
 
-- (linux) command line / bash [SWC Lesson](https://swcarpentry.github.io/shell-novice/), [ADACS Lesson](https://adacs.org.au/courses/introduction-to-bash/)
-- command line text editor ([emacs](https://www.linuxfordevices.com/tutorials/linux/emacs-editor-tutorial)/[vim](https://www.tutorialspoint.com/vim/index.htm#)/[nano](https://www.linuxfordevices.com/tutorials/linux/nano-editor-in-linux))
 - Python scripting [SWC Lesson](http://swcarpentry.github.io/python-novice-gapminder/), [ADACS Lesson](https://adacs.org.au/courses/introduction-to-python/)
 
 ## Engagement

@@ -1,0 +1,8 @@
+astropy
+jupyter
+kaggle
+matplotlib
+numpy
+pandas
+skforecast
+sklearn
