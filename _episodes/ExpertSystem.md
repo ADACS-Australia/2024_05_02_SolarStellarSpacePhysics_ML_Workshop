@@ -40,6 +40,7 @@ We will then discuss how we can turn the above *detection* algorithm into one wh
 We are going to be using Jupyter notebooks to explore our data and design our algorithm.
 Once we have an algorithm we are happy with we could then create a standalone program that runs from the command line, but Jupyter notebooks are a much better place for us to work and explore during this phase of development.
 
+
 You can run Jupyter from the command line via:
 ~~~
 jupyter lab
@@ -78,7 +79,7 @@ Finally, you can use the Jupyter extension to [VSCode](https://code.visualstudio
 
 > ## ImportError
 > If you get an import error for any of the above libraries it means that you haven't installed the library yet.
-> The libraries required for this session are outlined in the [Setup]({{page.root}}{% link _episodes/Setup.md %}) lesson.
+> The libraries required for this session are outlined in the [Setup]({{page.root}}{% link _episodes/Setup.md %}) lesson and in ([requirements.txt]({{page.root}}{% link data/requirements.txt%})).
 >
 > You can install libraries directly from your jupyter notebook with a code cell like this:
 > ~~~
