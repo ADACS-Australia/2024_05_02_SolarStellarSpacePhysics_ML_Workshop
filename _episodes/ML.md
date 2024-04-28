@@ -164,6 +164,7 @@ In fact, we do this many times for different non-overlapping choices of the vali
 The splitting scheme is shown in the figure below:
 
 ![Cross validation]({{page.root}}{% link fig/CVDiagram.png %})
+*credit: [learningds.org](https://learningds.org/ch/16/ms_cv.html)*
 
 > # Make test/train subsets of our data
 > Since timeeries data has inherent order and internal correlation we cannot
@@ -187,6 +188,7 @@ This is refered to as the curse of dimensionality: too few features and we have 
 There is a sweet spot somewhere between the two, and it's often at a much smaller number that you might think.
 
 ![Curse of dimensionality]({{page.root}}{% link fig/CurseOfDimensionality.png %})
+* Credit: [builtin.com](https://builtin.com/data-science/curse-dimensionality)*
 
 Because we are working with linear models, and directly with lagged data, the lags that are most likely to be useful are those that correspond to periodicities in the dataset.
 Let us now investigate what those peridicities are.
