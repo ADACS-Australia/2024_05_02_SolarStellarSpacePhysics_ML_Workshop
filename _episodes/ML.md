@@ -153,14 +153,79 @@ Select only the data after the Dalton Minimum (1830 onward).
 Split our data into training and testing data (80/20).
 Split our training data into train / validate subsets.
 
+If we are teaching our ML machine we need to be careful not let it peak at the answers.
+To do this we need to split our data into two sets, one for training and one for evaluating the effectiveness on unseen data.
+For this we'll make a training a testing split of 80/20%.
+
+However, in order to train our algorithm we need to do a few iterations of the train/evaluate loop.
+For this we can split our training data further into a training and validation set.
+In fact, we do this many times for different non-overlapping choices of the validation set.
+
+The splitting scheme is shown in the figure below:
+
+![Cross validation]({{page.root}}{% link fig/CVDiagram.png %})
+
+> # Make test/train subsets of our data
+> Since timeeries data has inherent order and internal correlation we cannot
+> just choose a random 80/20 split.
+> Instead we are going to choose the first/last 80/20 % for the splitting.
+> TODO 80/20 split
+{: .challenge}
+
+We will work on the validation part at a later stage since it'll require some more careful thinking.
+
+We do the test / train split now becaue we don't want any information leaking from our test data into our model in the form of the choices that we are making about the data processing.
 
 ## Selecting features
+
+The simplest features that we have access to are our data points but with a lag.
+We could also crate new features based on combinations of these lags, differences, averages, etc.
+For now we'll just focus on the the lags.
+
+Potentially we have hundreds or thusands of lags we could select from, but the more features that we select, the more chance that we'll be adding noise to our model.
+This is refered to as the curse of dimensionality: too few features and we have not enough signal, too many features and we have too much noise.
+There is a sweet spot somewhere between the two, and it's often at a much smaller number that you might think.
+
+![Curse of dimensionality]({{page.root}}{% link fig/CurseOfDimensionality.png %})
+
+Because we are working with linear models, and directly with lagged data, the lags that are most likely to be useful are those that correspond to periodicities in the dataset.
+Let us now investigate what those peridicities are.
+Since we know that the solar cycle has a period of around 11 years (132 months) we'll look at all the periods in the data up to at least 132 months and select the strongest.
+
+~~~
+# Autocorrelation and partial correlation plots for up to 150 lags.
+~~~
+{: .language-python}
+
 - feature selection
     - linear model based on history
     - look for periodicity = correlation between features (lags)
-- train, test, and validation discussion
-- split train into train/validate
-
 
 
 ## Training our model
+
+TODO: Select the model with some default parameters and train it
+~~~
+
+~~~
+{: .language-python}
+
+TODO: Evaluate the model and make some observations
+
+~~~
+# predicted values vs known values
+
+# model accuracy measures
+~~~
+{: .language-python}
+
+
+> ## Discuss the performance so far
+>
+{: .discussion}
+
+## Tuning our model
+
+TODO Hyperparameter training.
+
+TODO choosing validation subsets.
