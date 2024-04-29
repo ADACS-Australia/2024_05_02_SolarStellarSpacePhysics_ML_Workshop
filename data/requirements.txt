@@ -6,3 +6,4 @@ numpy
 pandas
 skforecast
 sklearn
+statsmodels
