@@ -17,7 +17,7 @@ Machine learning is a type of AI in which we don't explicitly code our algorithm
 The algorithms that we use have already been constructed to be of general use and to be able to learn, it is up to us to tach them wrong from right.
 
 There are many different machine learning algorithms, many classes of machine learning, and different ways to train an ML.
-The art of machine learning, of being a good data scientist, is to be able to take a given data set and desired outcome and select and train an appropriate algorirthm.
+The art of machine learning, of being a good data scientist, is to be able to take a given data set and desired outcome and select and train an appropriate algorithm.
 In reality there is no super magic to this and we engage in a little bit of 'try many things and choose the best'.
 
 The normal machine learning workflow is as follows:
@@ -521,9 +521,68 @@ Alternatively we could find, fit, and then subtract the seasonal component from 
 > 
 {: .challenge}
 
+> ## My model with seasonality
+> ![model with seasonality]({{page.root}}{% link fig/ThirdPass.png %})
+> 
+{: .solution}
 
+
+## Cross validation
+
+So far we have been doing a lot of model training using all the training data to build the model, and then using the test data to evaluate the model.
+This is a little bit wrong, because we may make decisions that relied on information from the test data.
+What we should hav been doing is to use cross validation to evaluate our model, and then look at the test data to see if we are over/under fitting.
+
+Let us now implement some cross validation.
+Unfortunately the `AutoReg` model doesn't have quite the same behavior as the models provided to us by `sklearn` so we can't simply use the `cross_validate`, and we have to do a bit of home-brewing.
+On the other hand, this will help us understand the cross-validation process in more depth.
+
+Unlike the cross validation image that we showed earlier (for general use), with time series data we follow a scheme that is more like the following:
+
+![CrossValTimeSeries]({{page.root}}{% link fig/CrossValTimeSeries.png %})
+
+Use the following as a template and experiment from there.
+
+~~~
+# Make a series of splits for the data
+tscv = TimeSeriesSplit(n_splits=5)
+scores = []
+
+# Train on longer and longer subsets of the data
+for train_index, test_index in tscv.split(train):
+    print(f"Training on the first {len(train_index)} samples, testing on the next {len(test_index)} samples")
+    train_data, test_data = data.iloc[train_index], data.iloc[test_index]
+    
+    # create our model, fit, and predict
+    model = AutoReg(train_data, lags=all_lags_sorted[:10], seasonal=True, period=12*11)
+    model_fit = model.fit()
+    predictions = model_fit.predict(start=test_index[0], end=test_index[-1])
+    
+    # evalutate the model and save the score for this split
+    mse = mean_squared_error(test_data, predictions)
+    scores.append(mse)
+    
+# this is our score averaged over all the different splints
+avg_score = np.mean(scores)
+std_score = np.std(scores)
+
+print(f"Scores during cross validatiaon {scores}")
+print(f"Summary score is {avg_score:.2f}+/-{std_score:.2f}")
+~~~
+{: .language-python}
+
+
+> ## Discuss
+> Observe the size of the train/test sets during each cross-validation.
+>
+> What do you notice about the mean/std of the score, and the MES of each of the "splits"?
+>
+> Discuss with your peers and make notes in the [etherpad]({{site.etherpad}})
+> 
+{: .discussion}
 
 ## Bringing everything together
+
 
 
 
