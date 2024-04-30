@@ -5,5 +5,5 @@ matplotlib
 numpy
 pandas
 # skforecast
-sklearn
+scikit-learn
 statsmodels
