@@ -1,5 +1,5 @@
 ---
-title: "Task Background for session 2"
+title: "Building a machine learning model for time-series data forecasting"
 teaching: 15
 exercises: 30
 questions:

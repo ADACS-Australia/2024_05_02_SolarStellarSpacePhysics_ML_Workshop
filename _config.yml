@@ -154,3 +154,9 @@ exclude:
 
 # Turn on built-in syntax highlighting.
 highlighter: rouge
+
+episode_order:
+- Setup
+- WorkshopOverview
+- ExpertSystem
+- ML

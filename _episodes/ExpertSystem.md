@@ -1,5 +1,5 @@
 ---
-title: "Task Background for session 1"
+title: "Building an expert system for image feature recognition"
 teaching: 15
 exercises: 30
 questions:
