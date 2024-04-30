@@ -4,6 +4,6 @@ kaggle
 matplotlib
 numpy
 pandas
-skforecast
+# skforecast
 sklearn
 statsmodels
