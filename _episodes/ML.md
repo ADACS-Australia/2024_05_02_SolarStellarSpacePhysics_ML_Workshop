@@ -583,33 +583,188 @@ print(f"Summary score is {avg_score:.2f}+/-{std_score:.2f}")
 
 ## Bringing everything together
 
+Now we will bring together all the things that we have learned so far:
+1. Using an AutoRegressor model
+2. Selecting the most important lags as features
+3. Including seasonality in our model
+4. Cross validation to get a better understanding of the model performance
 
+We will also add a key important step which is an automatic and systematic search for the best parameters for our model.
+This is referred to as **Hyperparameter training** and essentially means we need to do a few optimization loops.
+Whilst we could explore the entire space of lags x seasonal periods, we'll explore them separately to reduce the parameter space.
+For today this is just so things run in a reasonable time, but when you have more complex models with many different parameters and large data sets, it quickly becomes expensive or impossible to do all the computations needed so smart techniques have to be used.
 
+### Tune our lags parameter
 
-## Training our model
+We have a sorted list of all the lags from highest to lowest correlation, which we interpret as being most to least useful.
+Let us now figure out how many of these lags we should use:
 
-TODO: Select the model with some default parameters and train it
+We will add an optimisation loop in what I call the `lag_order` (number of lags to use).
+Here is a template within which you can add around your cross validation from above:
+
 ~~~
+# Set best values to be worst
+best_score = float('inf')
+best_lags = None
 
+# loop over the number of lags to use
+for lag_order in range(1, len(all_lags_sorted), 5):
+    tscv = TimeSeriesSplit(n_splits=5)
+    scores = []
+    print(f"Using lags {lag_order} ... ", end='')
+
+    ... # cross validation part using lags=all_sorted_lags-[:lag_order]
+    
+    avg_score = np.mean(scores)
+    print(f" ... average MSE is {avg_score:.2f}")
+    if avg_score < best_score:
+        best_score = avg_score
+        best_lag_order = lag_order
+        
+print("="*20)
+print(f"The best lags was {best_lag_order} with an average MSE of {best_score:.2f}")
 ~~~
 {: .language-python}
 
-TODO: Evaluate the model and make some observations
-
-~~~
-# predicted values vs known values
-
-# model accuracy measures
-~~~
-{: .language-python}
-
-
-> ## Discuss the performance so far
+> ## Determine the ideal number of lags we should use
+> Use the above code templates to figure out how many lags we need to get a good result.
 >
-{: .discussion}
+> Once you have an answer share the number and MSE in the [etherpad]({{site.etherpad}})
+> 
+{: .challenge}
 
-## Tuning our model
+> ## Reference code
+> ~~~
+> # Set best values to be worst
+> best_score = float('inf')
+> best_lags = None
+> 
+> # loop over the number of lags to use
+> for lag_order in range(1, len(all_lags_sorted), 5):
+>     tscv = TimeSeriesSplit(n_splits=5)
+>     scores = []
+>     print(f"Using lags {lag_order} ... ", end='')
+>     # Don't train on all the data at once
+>     # Instead train on longer and longer subsets of the data
+>     for train_index, test_index in tscv.split(train):
+>         train_data, test_data = data.iloc[train_index], data.iloc[test_index]
+>         model = AutoReg(train_data, lags=all_lags_sorted[:lag_order], seasonal=True, period=12*11)
+>         model_fit = model.fit()
+>         predictions = model_fit.predict(start=test_index[0], end=test_index[-1])
+>         mse = mean_squared_error(test_data, predictions)
+>         scores.append(mse)
+>     
+>     avg_score = np.mean(scores)
+>     print(f" ... average MSE is {avg_score:.2f}")
+>     if avg_score < best_score:
+>         best_score = avg_score
+>         best_lag_order = lag_order
+>         
+> print("="*20)
+> print(f"The best lags was {best_lag_order} with an average MSE of {best_score:.2f}")
+> ~~~
+> {: .language-python}
+{: .solution}
 
-TODO Hyperparameter training.
 
-TODO choosing validation subsets.
+Now that we have the ideal lags locked in, lets just make sure that the seasonality is right.
+We know the answer is about 11 years, but we can explore around that number +/- a few months.
+
+This time our outer loop looks like:
+~~~
+# Do a search over the different periods that we use for seasonality
+best_period_score = float('inf')
+best_period = None
+lag_order = best_lag_order
+
+for period in range(12*11-6,12*11+6, 1):
+        ...
+
+        model = AutoReg(train_data, lags=all_lags_sorted[:lag_order], seasonal=True, period=period)
+        ...
+    
+    avg_score = np.mean(scores)
+    print(f" ... average MSE is {avg_score:.2f}")
+    if avg_score < best_period_score:
+        best_period_score = avg_score
+        best_period = period
+        
+print("="*20)
+print(f"The best period was {best_period} with an average MSE of {best_period_score:.2f}")
+~~~
+{: .language-python}
+
+
+> ## Determine the ideal period for the solar cycle
+> Use the above code templates to figure out the length of the solar cycle  we need to get a good result.
+>
+> Once you have an answer share the number and MSE in the [etherpad]({{site.etherpad}})
+> 
+{: .challenge}
+
+> ## Reference code
+> ~~~
+> # Do a search over the different periods that we use for seasonality
+> best_period_score = float('inf')
+> best_period = None
+> lag_order = best_lag_order
+> 
+> for period in range(12*11-6,12*11+6, 1):
+>     tscv = TimeSeriesSplit(n_splits=5)
+>     scores = []
+>     print(f"Using period {period} ... ", end='')
+>     # Train on longer and longer subsets of the data
+>     for train_index, test_index in tscv.split(train):
+>         train_data, test_data = data.iloc[train_index], data.iloc[test_index]
+>         model = AutoReg(train_data, lags=all_lags_sorted[:lag_order], seasonal=True, period=period)
+>         model_fit = model.fit()
+>         predictions = model_fit.predict(start=test_index[0], end=test_index[-1])
+>         mse = mean_squared_error(test_data, predictions)
+>         scores.append(mse)
+>     
+>     avg_score = np.mean(scores)
+>     print(f" ... average MSE is {avg_score:.2f}")
+>     if avg_score < best_period_score:
+>         best_period_score = avg_score
+>         best_period = period
+>         
+> print("="*20)
+> print(f"The best period was {best_period} with an average MSE of {best_period_score:.2f}")
+> ~~~
+> {: .language-python}
+{: .solution}
+
+## Final best-est model time
+
+Take all of what we have learned, and apply it to our data.
+
+1. Choose the best model parameters and build the model
+2. Train the model on **all** the training data
+3. Predict our model on the test data
+4. Measure the MSE of our model
+5. Make a pretty plot
+
+> ## My final results
+> 
+> ~~~
+> # Fit the best model
+> best_model = AutoReg(train, lags=all_lags_sorted[:best_lag_order], seasonal=True, period=best_period)
+> results = best_model.fit()
+> 
+> pred = results.predict(start=test.index[0], end=test.index[-1])
+> mse = mean_squared_error(test, pred)
+> 
+> fig, ax = plt.subplots()
+> ax.plot(train['1980':], label='train')
+> ax.plot(test, color='blue', label='test')
+> ax.plot(pred, color='orange', label='predicted')
+> ax.legend()
+> ax.set_title(f"MSE: {mse:.2f}")
+> plt.savefig("FinalModel.png")
+> plt.show()
+> ~~~
+> {: .language-python}
+> 
+> ![Final model]({{page.root}}{% link fig/FinalModel.png %})
+> 
+{: .solution}
