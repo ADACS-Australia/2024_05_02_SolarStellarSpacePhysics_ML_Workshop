@@ -235,7 +235,47 @@ If our data had some easily defined periodicity then this would be a simple prob
 E.g. a two body system can be described in a closed analytical form and there is no real learning to to do, we just supply some initial conditions and we are done.
 However, the Sun is not so simple, there are periods within the data that we can see easily by eye, but there is also a lot of weirdness (a.k.a physics) going on that we don't completely understand.
 
-Since we'll be working with lagged data
+Since we'll be working with lagged data let us have an explore of what these lags look like.
+Pandas give us the following convenience function:
+
+~~~
+# For a correlation of 1 month we see a highly correlated plot
+# For other lags we see different degrees of correlation
+lag_plot(data['y'], lag=1)
+~~~
+{: .language-python}
+
+Which gives the following:
+
+![Lag-1.png]({{page.root}}{% link fig/Lag-1.png %})
+
+
+> ## Explore different lags
+> - Re-run the above code with different values of `lag` and see what behaviors are present
+> - Describe and discuss the behaviors with your peers
+> - See if you can explain some of these behaviors
+> - Make a note of some interesting lags in the [etherpad]({{site.etherpad}})
+> 
+{: .challenge}
+
+We can take a more systematic approach to the above and compute the autocorralation of our data.
+Using `plot_acf(data['y'], lags=150)` (this time from statsmodels) will let us see the Autocorrelation for our data, along with some guidelines for significance at the 95% (shaded region) level.
+
+![Autocorrelation]({{page.root}}{% link fig/AutoCorr.png %})
+
+The problem with the above is that each correlation will cause harmonics at integer multiple lags, and have correlations bleeding from one lag into neighboring lags.
+Since our 1 month lag correlation is so strong all the other potential lags get swamped.
+
+Instead let us plot the partial auto-correlation function, in which each correlation is removed from the data set before computing the next.
+Again, thanks to statsmodels, this is easy to do using `plot_pacf(data['y'], lags=150)`.
+In the below figure I've zoomed the figure to make it easier to see which lags are outside the indicator for 95% confidence.
+
+![Partial Autocorrelation]({{page.root}}{% link fig/PartialAuto.png %})
+
+From the above we can see the following:
+- There are many lags at which there is significant correlation
+- There are many **more** lags at which thee correlation is much lower
+- The pattern to which lags are important or not is not regular so we have to learn from the data.
 
 
 ## Training, testing, and validation
