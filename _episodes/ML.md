@@ -280,58 +280,251 @@ From the above we can see the following:
 
 ## Training, testing, and validation
 
-Split our data into training and testing data (80/20).
-Split our training data into train / validate subsets.
+Now that we have learned about the algorithm that we'll be using, and had some initial investigations of the data, we need to get serious about the actual learning and training.
+A key tenant of machine learning (and human learning) is that your testing doesn't mean anything if you give away the answers beforehand.
+We are going to train our algorithm, and then test it's performance on known data, so that we can then infer that these results also apply to unseen data.
+Thus we want to have a clean, unbiased, best measure, of the model performance so that we aren't over- or under-estimating it's usefulness.
+Additionally, our data is valuable and "getting more data" is either expensive or not possible.
+Our goal is to predict the mean sunspot counts each month for at least one solar cycle and given that each cycle is 11 years, I don't want to have to hang around for new data to be collected just to test my model.
 
-If we are teaching our ML machine we need to be careful not let it peak at the answers.
-To do this we need to split our data into two sets, one for training and one for evaluating the effectiveness on unseen data.
-For this we'll make a training a testing split of 80/20%.
+The standard practice for ML training and optimal data use is:
+1. split your data into two parts called train and test,
+2. use the training data to build your best models,
+3. keep the test data secret (from the models) and use it to evaluate their performance after training.
 
-However, in order to train our algorithm we need to do a few iterations of the train/evaluate loop.
-For this we can split our training data further into a training and validation set.
-In fact, we do this many times for different non-overlapping choices of the validation set.
+With our training data we build a model by choosing some parameters, fitting the model, and then measuring it's performance.
+We then update the parameters and redo the train / evaluate loop until we get the *best* parameters.
+There is therefore a need to split our training data further into training and validation subsets.
+There is thus a sort of recursion that is happening here with our data splitting.
+In order that we can get the best measure of a models performance we average the various metrics over multiple train/validation splits.
 
 The splitting scheme is shown in the figure below:
 
 ![Cross validation]({{page.root}}{% link fig/CVDiagram.png %})
 *credit: [learningds.org](https://learningds.org/ch/16/ms_cv.html)*
 
+Standard practice is to use a 80/20 ratio of train/test data, and between 5-10 splits for the validation sets.
+
 > ## Make test/train subsets of our data
-> Since timeeries data has inherent order and internal correlation we cannot
-> just choose a random 80/20 split.
-> Instead we are going to choose the first/last 80/20 % for the splitting.
-> TODO 80/20 split
+> Since time-series data has inherent order and internal correlation we cannot just choose a random 80/20 split.
+> Instead we are going to choose the first/last 80/20% for the splitting.
+> Additionally, for the sake of easy viewing we are going to make the split so that it occurs at the boundary between solar cycles.
+> Thus:
+> - plot the full solar data set,
+> - count the number of cycles and choose a number that is approximately 20% of the dataset (rounding down),
+> - identify a year that we can use to split the data into train/test
+> - save this year as `split_date` (can be a string of just the year)
+> - split your data using:
+> ~~~
+> split_date = ? # your date
+> train = data[:split_date]
+> test = data[split_date:]
+> ~~~
+> {: .language-python}
+> > ## My solution
+> > I count 18 cycles, so 20% is 3.6 which I round down to 3. Plotting data from 1980 onward I get the below plot and see that there is a minimum around 1986 so i'm going to choose this as my splitting date.
+> > ![zoomed data]({{page.root}}{% link fig/ZoomForSplitting.png %})
+> > ~~~
+> > split_date = '1986'
+> > ~~~
+> > {: .language-python}
+> {: .solution}
 {: .challenge}
 
 We will work on the validation part at a later stage since it'll require some more careful thinking.
 
-We do the test / train split now becaue we don't want any information leaking from our test data into our model in the form of the choices that we are making about the data processing.
+We do the test / train split now because we don't want any information leaking from our test data into our model in the form of the choices that we are making about the data processing.
+All the prelim exploration that we did earlier was working with the full data set, so we shouldn't make any choices (eg, what lags to use) based on that data.
 
-## Selecting features
+## Training a model
 
-The simplest features that we have access to are our data points but with a lag.
-We could also crate new features based on combinations of these lags, differences, averages, etc.
-For now we'll just focus on the the lags.
+Let us get a baseline for comparison by training a model with limited knowledge and see how we go.
+As noted before we are going to use an auto-regressive model.
+In particular we'll use the `AutoReg` model from the `statsmodels` module.
+Thankfully many of the machine learning modules all use a very similar interface for interacting with their models so the actual process of machine learning can look decptively easy.
+Below is a snippet of code which will:
+1. Create a model with given parameters (in this case a nuber of lags)
+2. Train (fit) the model on our data
+3. Use our trained model to predict future data
+4. Measure the performance of the model
+5. Plot the results.
 
-Potentially we have hundreds or thousands of lags we could select from, but the more features that we select, the more chance that we'll be adding noise to our model.
-This is refered to as the curse of dimensionality: too few features and we have not enough signal, too many features and we have too much noise.
+~~~
+# Train model and make predictions
+model = AutoReg(train, lags=1)
+results = model.fit()
+
+# Predict into the future for the duration of the test data
+pred = results.predict(start = test.index[0], end=test.index[-1])
+
+# Evaluate model performance
+score = mean_squared_error(test, pred)
+
+# plot the results
+fig, ax = plt.subplots()
+ax.plot(train['1970':])
+ax.plot(test, color='blue', label='true')
+ax.plot(pred, color='orange', label='predicted')
+ax.set_xlabel('Date')
+ax.set_ylabel('Mean monthly spot counts')
+ax.set_title(f"MSE: {score:.2f}")
+plt.show()
+~~~
+{: .language-python}
+
+In the above we have used the mean squared error as a measure of the model performance.
+This is the mean of the (data-model) squared.
+
+As you can see, the model fitting and predicting is just 3 lines of code, evaluating the model is 1 line, and plotting is 8 lines.
+
+![first pass model]({{page.root}}{% link fig/FirstPass.png %})
+
+> ## Evaluate my model
+> How do you think the model performed?
+> 
+> Experiment with different values of `lag` and see if you get better results.
+>
+> If you get better results for higher lags make a note in the [etherpad]({{site.etherpad}})
+>
+{: .discussion}
+
+> ## My quick observations
+> Using only a few lags causes the model to do "ok" for a few months, and then it will settle on some constant not interesting value like a critically damped oscillator.
+>
+> Using a larger (>~50) number of lags starts to introduce some periodicity into the predictions but it still looks like a damped oscillator.
+>
+> Even if we set the lags to be very large (1000) we don't get better results, in fact we end up with an exponentially increasing oscillating behavior.
+> 
+{: .solution}
+
+
+## Improving our results
+
+### Selecting features
+
+The features that we have access to are our data points but with a lag.
+If we wanted to, we could create new features based on combinations of these lags, differences, averages, variance, etc.
+However that complicates our processing, so we will not explore this today.
+
+Potentially we have hundreds or thousands of lags we could select from.
+Each feature potentially adds more signal so you might be tempted to use all the features.
+However, each feature adds noise, so we should use as few as possible.
+This is referred to as the curse of dimensionality: too few features and we have not enough signal, too many features and we have too much noise.
 There is a sweet spot somewhere between the two, and it's often at a much smaller number that you might think.
 
 ![Curse of dimensionality]({{page.root}}{% link fig/CurseOfDimensionality.png %})
 *Credit: [builtin.com](https://builtin.com/data-science/curse-dimensionality)*
 
-Because we are working with linear models, and directly with lagged data, the lags that are most likely to be useful are those that correspond to periodicities in the dataset.
-Let us now investigate what those peridicities are.
+Because we are working with linear models, and directly with lagged data, the lags that are most likely to be useful are those that correspond to periodicities (or correlations) in the dataset.
+Let us revisit our investigation of these correlations.
+
+We can use the `pacf(data['y'], nlags=?)` function to compute all the partial autocorrelations (that were shown in the plot previosly) for lags up to some number.
 Since we know that the solar cycle has a period of around 11 years (132 months) we'll look at all the periods in the data up to at least 132 months and select the strongest.
 
 ~~~
 # Autocorrelation and partial correlation plots for up to 150 lags.
+partial = pacf(data['y'], nlags=?)
+print(partial)
 ~~~
 {: .language-python}
 
-- feature selection
-    - linear model based on history
-    - look for periodicity = correlation between features (lags)
+~~~
+[ 1.00000000e+00  9.21431263e-01  2.61468947e-01  1.87111157e-01
+  1.36507990e-01  6.58880681e-02  5.61757662e-02  4.97585033e-03
+  1.19296174e-02  2.41740510e-02 -5.39746593e-02 -5.85780073e-02
+ -5.83541917e-02 -1.01599903e-01 -3.26562940e-02 -4.85333902e-02
+ -9.75415629e-02 -8.80749512e-02 -1.03359047e-01 -4.68672061e-02
+...
+  1.75795932e-02 -1.53937744e-02 -2.33902396e-02 -1.98993491e-02
+  1.54703200e-02 -1.94083977e-02 -5.76878487e-03 -5.00392522e-02
+  2.49014209e-02  8.86220994e-03 -1.46009667e-02  4.28663884e-03
+ -1.59786652e-02 -2.12559594e-02 -4.00213909e-02  3.25161113e-04
+  2.00279138e-02  3.48651613e-03  3.74865269e-03 -3.91115819e-02
+  7.14413589e-03 -1.40235269e-02 -1.27618828e-02]
+~~~
+{: .output}
+
+The first entry in the list is the zero lag which of course shows a correlation of 1.0.
+How can we use this information?
+I see two options:
+1. Select all the lags with some correlation above a critical value and use them in our model, varying this threshold as a hyperparameter for our model.
+2. Sort the lags by correlation strength and then use the first N of these lags in our model, varying this N as a hyperparameter of our model.
+
+Since the distribution of the correlation strengths isn't regular I think that the second approach will yield the best results so we'll go with that.
+
+A hidden gem of the `numpy` module is the various `np.arg` functions which allow you to compute min/max or sort a data set but then return the arguments (indexes) instead of the values.
+Thus if we do `np.argsort(abs(partial))` we'll get a list of the arguments (in this case the actual lags) corresponding to the sorted correlation values.
+
+Using this trick we'll construct a list of the lags in order of potential usefulness.
+Additionally we'll do some good commenting to make our 1 line super hack into something more readable.
+
+~~~
+partial= pacf(data['y'], nlags=150)
+all_lags_sorted = list(                   # convert generator to a list
+                    reversed(             # reverse the list (returns a generator
+                        np.argsort(       # return the arguments of the sorted array
+                            abs(partial)  # +/- correlations are equally useful
+                        )
+                    )
+                  )[1:]                   # Chop the first lag (0) as it can't be used in our model
+print(all_lags_sorted)
+~~~
+{: .language-python}
+
+
+> ## Use the `all_lags_sorted` to train a new model
+> Pass `lags=all_lags_sorted` into our `AutoReg` model, train it, and review the results.
+>
+> It is probably a good idea to copy/paste your previous notebook cell so that you can swap back and forth between the results.
+>
+> Do your new results look better than the previous ones?
+> Comment in the [etherpad]({{site.etherpad}})
+> 
+{: .challenge}
+
+
+> ## My new model
+> ![Second pass]({{page.root}}{%link fig/SecondPass.png %})
+>
+{: .solution} 
+
+### Adding seasonality
+
+Our data set has a fairly obvious repeating pattern to it - the 11 year solar cycle.
+Even our best models so far don't seem to be able to properly understand that seasonality.
+Seasonality can be thought of as a more generic periodicity which doesn't need to be some sinusoidal function.
+
+The below code/plot shows a seasonal decomposition:
+
+~~~
+result = seasonal_decompose(data['y'], model='additive', period=12*11)
+result.plot()
+plt.suptitle('Seasonal Decomposition of Sunspot data series')
+plt.show()
+~~~
+{: .language-python}
+
+![Seasonal decomposition]({{page.root}}{% link fig/Seasonal.png %})
+
+If our model were to understand that there was a repeating seasonal feature in the data set then it should have an easier time making predictions.
+To incorporate seasonality we need to increase our dimensionality by 1, to include a parameter that tracks the current phase of the season.
+Alternatively we could find, fit, and then subtract the seasonal component from our dataset, train a model on the remainder, make a prediction, and then add our seasonal component to the prediction.
+
+> ## Include seasonality in our model
+> Add the parameters `seasonal=True, period=12*11` to our model, fit, predict, and plot.
+>
+> Does the predicted data look better than the previous model?
+>
+> Does the MSE agree with your assessment?
+>
+> Comment in the [etherpad]({{site.etherpad}})
+> 
+{: .challenge}
+
+
+
+## Bringing everything together
+
 
 
 ## Training our model
