@@ -12,7 +12,7 @@ keypoints:
 - "Everyone is here to learn and that means making mistakes"
 ---
 ## Acknowledgement of country
-We wish to acknowledge the custodians of the land we reside on. These lessons were developed on the lands of the Wadjuk (Perth region) people of the Nyoongar nation. We pay our respect to their Elders and acknowledge their continuing culture and the contribution they make to the life of our cities and regions.
+We wish to acknowledge the custodians of the land we reside on. These lessons were developed on the lands of the Wadjuk (Perth region) people of the Nyoongar nation. Today we meet on the lands of the Jagera, Giabal and Jarowair tribes.  We pay our respect to their Elders and acknowledge their continuing culture and the contribution they make to the life of our cities and regions.
 
 
 ## Overview
@@ -26,21 +26,24 @@ The workshop is designed to have three lessons per day dedicated to explaining a
 This course assumes that you have basic proficiency in python.
 
 
-Software requirements
-<!-- TODO: Review requirements -->
+Software requirements for running on your own computer:
 - Python 3.8+ with the following modules ([requirements.txt]({{page.root}}{% link data/requirements.txt%}))
-  - numpy
   - astropy
-  - pandas
-  - matplotlib
   - jupyter
-  - sklearn
-  - skforecast
   - kaggle
+  - matplotlib
+  - numpy
+  - pandas
+  - scikit-learn
+  - statsmodels
 - A integrated development environment ([IDE](https://en.wikipedia.org/wiki/Integrated_development_environment)) or text editor of choice
   - We recommend [Visual Studio Code](https://code.visualstudio.com/)
 
-Assumed knowledge (links for info)
+
+If the above doesn't work for you or you would like to work on a cloud system then we recommend that you use [Google Colaboratory](https://colab.google/), it is free and requires only a Google account to access.
+
+
+Assumed knowledge (links for info):
 
 - Python scripting [SWC Lesson](http://swcarpentry.github.io/python-novice-gapminder/), [ADACS Lesson](https://adacs.org.au/courses/introduction-to-python/)
 
