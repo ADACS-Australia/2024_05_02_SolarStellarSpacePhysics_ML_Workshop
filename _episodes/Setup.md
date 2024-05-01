@@ -4,12 +4,12 @@ teaching: 10
 exercises: 10
 questions:
 - "How can I prepare?"
-- "How will we be learning?"
 objectives:
 - "Set expectations for engagement and behavior"
 keypoints:
 - "Ask questions, experiment, and help others"
 - "Everyone is here to learn and that means making mistakes"
+- "I'm not *that* kind of Dr, please excuse my non solar/stellar/space physics expertise"
 ---
 ## Acknowledgement of country
 We wish to acknowledge the custodians of the land we reside on. These lessons were developed on the lands of the Wadjuk (Perth region) people of the Nyoongar nation. Today we meet on the lands of the Jagera, Giabal and Jarowair tribes.  We pay our respect to their Elders and acknowledge their continuing culture and the contribution they make to the life of our cities and regions.

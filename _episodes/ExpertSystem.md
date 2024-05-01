@@ -1,14 +1,18 @@
 ---
 title: "Building an expert system for image feature recognition"
-teaching: 15
-exercises: 30
+teaching: 60
+exercises: 55
 questions:
-- "What is our goal?"
+- "What is an expert system?"
 - "Which data are we going to use?"
+- "How can I download my brain into the computer?"
 objectives:
-- "Understand the task goal and obtain the relevant data"
+- "Create a signal detection algorithm for sunquakes given time-distance images"
 keypoints:
-- "TODO Ask questions, experiment, and help others"
+- "Writing an expert system is best done in collaboration with experts"
+- "Break a task down into it's most basic components and replicate them individually"
+- "Our visual system is **amazing** so don't be sad if it takes you a long time to get 1/2 good results from your code"
+- "An alternative to an expert system would be some Machine Learning algorithm, however we still need and expert to help guide the training process"
 ---
 
 # Building an expert system
