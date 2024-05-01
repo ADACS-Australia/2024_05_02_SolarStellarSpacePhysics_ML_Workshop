@@ -155,6 +155,7 @@ exclude:
 # Turn on built-in syntax highlighting.
 highlighter: rouge
 
+# Order the episodes since alpha-num sorting will fail
 episode_order:
 - Setup
 - WorkshopOverview

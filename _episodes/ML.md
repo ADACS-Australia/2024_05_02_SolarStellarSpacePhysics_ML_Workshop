@@ -34,7 +34,7 @@ We'll leave the improvements (step 5) for future work.
 In this lesson our aim is to use historical data to predict the value of future data.
 Specifically we'll be predicting future sunspot activity.
 
-As can be seen below there is a very long history of tracking these data, that there is some cyclic behaviour, and that there are a few deviations to the "usual" cycles.
+As can be seen below there is a very long history of tracking these data, that there is some cyclic behavior, and that there are a few deviations to the "usual" cycles.
 All up this makes for a very interesting data set.
 We are going to focus on a forecasting the sunspot numbers up to 1 year in advance, and we'll only be using data from after the Dalton Minimum. 
 
