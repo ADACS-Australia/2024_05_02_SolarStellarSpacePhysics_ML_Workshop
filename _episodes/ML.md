@@ -1,15 +1,16 @@
 ---
 title: "Building a machine learning model for time-series data forecasting"
-teaching: 15
-exercises: 30
+teaching: 90
+exercises: 60
 questions:
 - "What is our goal?"
 - "Which data are we going to use?"
 objectives:
 - "Understand the task goal and obtain the relevant data"
 keypoints:
-- "Ask questions, experiment, and help others"
-- "Everyone is here to learn and that means making mistakes"
+- "Machine learning can be a black box. Understanding what the tools are doing is very helpful"
+- "Data preparation can take a lot of your time, this isn't unusual"
+- "The strategies that we have used here today can be applied to many other models"
 ---
 # Machine learning task
 
