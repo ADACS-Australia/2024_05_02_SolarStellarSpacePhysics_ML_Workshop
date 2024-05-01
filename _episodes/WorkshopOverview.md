@@ -35,5 +35,5 @@ As such, we'll first be doing some work manually to understand what features of 
 
 ### 2. Training an ML algorithm to predict time series data
 
-In this second session we will learn generally about machine learning algorithms, and learn specifically about regression, the random forest algorithm, and how we can apply these algorithms to time series data.
+In this second session we will dive into a machine learning task with a focus on time series data analysis.
 This session will cover data collection, data preparation, feature selection, model training, and performance evaluation.
