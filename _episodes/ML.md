@@ -217,12 +217,12 @@ Our data is a time series of a single value so this is a 1D model that we'll be 
 
 As an example of an autogressive model, suppose we want to predict the next value in a sequence using the previous two values as input.
 The previous two values are often referred to as **lags**.
-In the figure below we have a prediction model (the $\script{F}$) taking two lagged values ($X_{t-1}, X_{t-2}$) as input (and optionally extra data $\epsilon$ ) to produce the prediction of $X_t$.
+In the figure below we have a prediction model (the \\(f\\)) taking two lagged values (\\(X_{t-1},~ X_{t-2}\\)) as input (and optionally extra data \\(\epsilon\\)) to produce the prediction of \\(X_t\\).
 
 ![Auto regression]({{page.root}}{% link fig/AutoReg.png %})
 *Credit:[10.3390/info14110598](https://doi.org/10.3390/info14110598)*
 
-Note that in the above diagram the prediction for $X_{t+1}$ uses the previous prediction as an input.
+Note that in the above diagram the prediction for \\(X_{t+1}\\) uses the previous prediction as an input.
 This is a key feature of time-series algorithms, and it means that you can easily end up in a situation where the output is oscillating or growing without bound as the algorithm amplifies prediction errors.
 One way to avoid this delirious behavior is incorporate additional (exogeneous) data into the prediction.
 This is not within the scope of our lesson for today.

@@ -279,13 +279,13 @@ plt.show()
 
 ![Scaled image]({{page.root}}{% link fig/ScaledData.png %})
 
-In the above image the color scale has been cropped to $\pm 3\sigma$.
+In the above image the color scale has been cropped to \\(\pm 3\sigma\\).
 Compared to the original image we have:
-- Reduced the prominence of whatever is going on at time $\sim 20$ and distance $\sim 0$
-- Increased the prominence of the ripple in the regin around distance $\sim 50$
+- Reduced the prominence of whatever is going on at time \\(\sim 20\\) and distance \\(\sim 0\\)
+- Increased the prominence of the ripple in the regin around distance \\(\sim 50\\)
 
 
-At this point we can make a new observation - the signal seems to follow a $t \sim \sqrt{d}$ relation starting at $d=0$ and $t=\sim25$.
+At this point we can make a new observation - the signal seems to follow a \\(t \sim \sqrt{d}\\) relation starting at \\(d=0\\) and \\(t=\sim25\\).
 
 Since our signal is distributed over multiple pixels, we could sum along the path of the signal, and hopefully the signal will accumulate while the noise will cancel out (regression to the mean).
 This is a standard approach and relies on the signal having some coherence over the summation whilst the noise does not.
@@ -314,8 +314,6 @@ cropped_data = scaled_data[:,25:75]
 > {: .language-python}
 >
 > Once you have a relationship between t and d post your best result in the [etherpad]({{site.etherpad}}).
-
-
 {: .challenge}
 
 My example is below:
@@ -648,7 +646,7 @@ Our signal of interest has a particular shape within our data.
 We don't need to completely remove the signal from our data, but we need to hide it from our algorithm.
 Understanding what our signal looks like and how our algorithm works gives us an advantage here.
 
-Our signal follows a roughly $t \propto \sqrt(d)$ relation and we shift all our data to account for this.
+Our signal follows a roughly \\(t \propto \sqrt{d}\\) relation and we shift all our data to account for this.
 If we were to invert our data along the time or distance dimension and perform the same shifting, then we will mix our signal in the same way that we mix the noise.
 Let's try this out now.
 
