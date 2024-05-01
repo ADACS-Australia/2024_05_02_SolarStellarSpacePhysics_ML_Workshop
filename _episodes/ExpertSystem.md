@@ -15,14 +15,32 @@ keypoints:
 
 ## Task background
 
-Observations with the Solar Dynamics Observatory ([SDO](https://sdo.gsfc.nasa.gov/)) Helioseismic and Magnetic Imager ([HMI](http://hmi.stanford.edu/)) are used to create ... TODO
+Observations with the Solar Dynamics Observatory ([SDO](https://sdo.gsfc.nasa.gov/)) Helioseismic and Magnetic Imager ([HMI](http://hmi.stanford.edu/)) are used to track the movement of waves within the Sun that result from sunquakes.
+
+When a solar flare occurs it releases energy down toward the surface (photosphere) of the sun, which then causes waves to propagate through the solar interior.
+This is a sunquake.
+As the waves move through the sun the density gradient causes them to diffract back to the surface of the sun.
+
+![sunquake diffraction]({{page.root}}{% link fig/sunquake_p-mode_solar_interior.gif %})
+
+We can't see the interior of the sun directly, and the chromosphere (where the flares originate) is transparent.
+What we can see, though, is the propagation of waves on the surface of the Sun via doppler imaging.
+
+![doppler]({{page.root}}{% link fig/sunquake_Dopplergram.gif %})
+
+The data set that we'll be working with today is constructed by taking this 3D (time + 2D space) dopplergram and turning it into a 2D image using the following scheme:
+
+![mapping]({{page.root}}{% link fig/TD_diagram.gif %})
+
+Thus the images that we are dealing with have a distance axis which is a radial distance from some center point at which the solar flare energy is expected to impact the photosphere.
 
 
-Our task is to search these images and look for wave fronts which represent ... TODO
+**Our task** is to search these images and look for a ripple structure that represents the pressure waves from a sunquake.
+An example time-distance image is shown below.
 
+![Time distance plot]({{page.root}}{% link fig/TD_clear.png %})
 
-![AI, ML, and DL]({{page.root}}{% link fig/AI_ML_DL.png %})
-*Credit:[medium.com](https://medium.com/analytics-vidhya/ai-ml-dl-whats-what-ecb354967e63)*
+## Workshop goals
 
 In this workshop we will design and old school class of AI (Artificial Intelligence) - an expert system.
 This system will be designed to replicate the analysis process conducted by an expert who is familiar with the data and the task at hand.
@@ -33,7 +51,7 @@ We will be focusing on determining:
 1. If a given image contains a signal of interest
 2. Whereabouts in that image ths signal is located
 
-We will then discuss how we can turn the above *detection* algorithm into one which also *characterises* the signals of interest.
+We will then discuss how we can turn the above *detection* algorithm into one which also *characterizes* the signals of interest, however we will not implement this characterization system.
 
 ## Setup our session
 
@@ -95,7 +113,8 @@ Finally, you can use the Jupyter extension to [VSCode](https://code.visualstudio
 In this session we'll be skipping the data collection and preparation stage and instead download some ready made data.
 
 > ## Download the data
-> Download and unzip the following file into a directory called 'data'. Link: TODO
+> Download and unzip the following file into a directory called 'data'.
+> [https://adacs.org.au/wp-content/uploads/2024/05/Data.zip](https://adacs.org.au/wp-content/uploads/2024/05/Data.zip)
 >
 > You should see a bunch of `.fits` images with names like:
 > ~~~
@@ -109,6 +128,8 @@ In this session we'll be skipping the data collection and preparation stage and 
 > TD_20130817-M3_3.fits
 > ~~~
 > {: .output}
+>
+> There are also `.png` versions of these images, and a directory called `part2` which we'll get to later.
 >
 > If you have trouble downloading or unzipping the data please raise a hand or put up a red sticker.
 {: .challenge}
@@ -128,7 +149,7 @@ In order to work with the image data we'll need to load it and view it in our no
 > 4. Use the following code snippet to view the image:
 > 
 > ~~~
-> fig, ax = plt.subplots(figsize=(15,9))
+> fig, ax = plt.subplots()
 > ax.imshow(data, origin='lower')
 > ax.set_xlabel('Distance')
 > ax.set_ylabel('Time')
@@ -151,8 +172,16 @@ In order to work with the image data we'll need to load it and view it in our no
 
 ## Detection vs Characterization
 
-- Is there something here?
-- What does that something look like?
+I would like to make a distinction between two tasks that are often done in tandem under the guise of "fitting" but which are actually separate tasks.
+The first task is **detection** which is asking the question "Is there something here?".
+This is what we are going to focus on in today's lesson.
+The second task is **characterization** which is asking the question "Given that there is something here, what does it look like?".
+This characterization task is where we determine the parameters of some feature, such as it's location, strength, shape, etc. and it is in this task that we often perform some kind of "fitting".
+We will talk about characterization today but we will not do any.
+Both detection and characterization require that we have some idea of what it is we are looking for and, more importantly, what we are **not** looking for.
+I like to think of this in terms of signal and noise - our task ultimately is to separate our image into parts which we label as signal and parts which we label as noise.
+
+With that out of the way, let us begin making our expert feature *detection* system.
 
 ## Manual inspection
 
@@ -181,19 +210,20 @@ The signal that we are looking for is strong or medium in the left and center im
 Now that we have identified the "feature" (a ripple) in the images above we need to design an algorithm to detect said feature.
 
 > ## A few things to note about the images:
-> - The ripple is a curved arc which looks to start around 20-30 time units from distance 0
+> - The ripple is a curved arc which looks to start around 20-30 minutes from distance 0
 > - Most of the pixels in the image are noise pixels, with only a small fraction being signal pixels
 > - The background image is filled with waves that are primarily horizontally elongated
-> - The background waves and the ripple are **harder** to distinguish at large Distances because they are aligned
-> - The background waves and the ripple are **easier** to separate at distances around 10-10Mm as the two are misaligned 
+> - The background waves and the ripple are **harder** to distinguish at large distances because they are aligned
+> - The background waves and the ripple are **easier** to separate at distances around 10-30Mm as the two are misaligned 
+> - There is a region from 0-10Mm were the signal should be easily seen, but it isn't. This is probably due to what we described in the very first animation. We effectively have a dead-zone where no signal is expected.
 > - The "wave height" or strength of the waves is different in different parts of the image, with the left of the image sometimes being min/max on the colour scale.
 > 
 {: .solution}
 
 The above observations are going to help us in designing an algorithm which separates the signal of interest (the ripple) from the noise (the other wavy things).
 The first few steps that we can plan are:
-- Normalise the data set so that the noise is roughly equal over the image
-- Crop the image to show just the region where the signal is the strongest
+- Normalize the data set so that the noise is roughly equal over the image
+- Crop the image to show just the region where the signal is most easily separated from the noise
 - Estimate the curvature of the ripple feature by over-plotting the (cropped) image
 
 
@@ -229,7 +259,10 @@ scaled_data = zscore(data)
 ~~~
 {: .language-python}
 
-If we now replot our image and add a colour bar we get something like the following:
+If we now replot our image and add a colour bar we get something like the following image.
+From this point onward we will work in units of pixels and intensity, without converting them to physical units, as this will make the algorithm simpler to write.
+At some point we will have to care about the physical units (in particular when we do characterization), but we can do without for now.
+
 ~~~
 fig, ax = plt.subplots(figsize=(15,9))
 im = ax.imshow(scaled_data, origin='lower', vmin=-3, vmax=3)
@@ -256,18 +289,11 @@ Since the signal is only really visible in some of the plot we shouldn't do this
 
 ## Crop image and identify the path of the ripple
 
-Let's first crop the image as follows:
+To focus only on the section of the image which has the best SNR, we'll crop our data.
+I suggest the following:
 
 ~~~
 cropped_data = scaled_data[:,25:75]
-
-fig, ax = plt.subplots(figsize=(15,9))
-im = ax.imshow(cropped_data, origin='lower', vmin=-3, vmax=3)
-fig.colorbar(im, ax=ax, label="SNR")
-ax.set_xlabel('Distance -25 units')
-ax.set_ylabel('Time')
-plt.savefig("Cropped.png")
-plt.show()
 ~~~
 {: .language-python}
 
@@ -284,7 +310,8 @@ plt.show()
 > {: .language-python}
 >
 > Once you have a relationship between t and d post your best result in the [etherpad]({{site.etherpad}}).
-> 
+
+
 {: .challenge}
 
 My example is below:
@@ -301,7 +328,7 @@ My example is below:
 
 Now that we have a description of what the relationship is we can sum along that line.
 Unfortunately our data are organized in orthogonal axes of time and distance but we want to look along a path with is some combination of the two.
-We can get around this problem by reprojecting our data so that the signal of interest is parallel to one of our axes.
+We can get around this problem by projecting our data so that the signal of interest is parallel to one of our axes.
 To do this we take our function from above and shuffle each of the columns downward so that our curved ripple becomes a horizontal line.
 In this process we'll be shuffling the entire image which means that the current horizontal waves which are the noise will become curved.
 Thus if we want to sum along our path we can use `np.sum(axis=?)` and get a nice profile of our potential signal.
@@ -312,6 +339,7 @@ We'll shuffle the data along the time axis, one slice at a time, using the `np.r
 This will take care of all the boundary problems that we might have.
 
 ~~~
+distances = np.arange(cropped_data.shape[1]) # An array of distance values (pixels)
 times =  # your function from above
 offsets = np.int64(times)  # Convert to integers so we can use as an index
 
@@ -334,14 +362,14 @@ Now if we sun across the distance dimension we should be able to accumulate the 
 summed = rolled.sum(axis=1)  # Sum over distance
 
 # plot
-fig, ax = plt.subplots(figsize=(15,9))
+fig, ax = plt.subplots()
 ax.plot(summed)
 
 # add lines to draw attention
 ax.axvline(mid+5, lw=2, color='red')
 ax.axvline(mid-5, lw=2, color='red')
 
-ax.set_xlabel('Wared Time')
+ax.set_xlabel('Warepd Time')
 ax.set_ylabel("Sum over distance")
 ax.set_title("Summed data")
 plt.show()
@@ -350,7 +378,7 @@ plt.show()
 
 ![Summed data]({{page.root}}{% link fig/Summed.png %})
 
-Within the red bars above we see a farily impressive signal that is different from anything outside the red bars.
+Within the red bars above we see a fairly impressive signal that is different from anything outside the red bars.
 
 We can determine the location of this potential signal by looking at the max value and location:
 
@@ -362,8 +390,13 @@ print(f"Peak of {peak_val:5.2f} found at {peak_index}")
 {: .language-python}
 
 > ## What next?
-> We could use a matched filter. TODO
-{: .challenge}
+> - We just looked for the max value in our summed data plot, but our signal has a clear signature. How can we increase our ability to find this signature and be less likely to hit a random noise peak?
+> - The location of the feature is determined as the index of the maximum pixel. How could we get a location that is more accurate than this 1 pixel resolution?
+> - Our shuffle/roll method takes a smooth function of t vs d, and rounds the values to `int`s so that we can do the roll with `numpy`. How might we make this projection step smoother to further enhance our signal once we sum along the distance axis?
+> - What other defects or possible improvements can you identify in our work so far?
+>
+> Discuss some ideas with your peers and add some suggestions to the [etherpad]({{site.etherpad}})
+{: .discussion}
 
 ## Creating a signal detection metric
 
@@ -556,30 +589,29 @@ With this all in one handy fucntion we can now easily apply our workflow to all 
 
 > ## Plotting our solution
 > ~~~
-> fig, ax = plt.subplots(figsize=(15,9))
+> fig, ax = plt.subplots()
 > ax.plot(results['filename'], results['stat'])
 > ax.set_xlabel("Dataset")
 > ax.set_ylabel("Detection Statistic")
 > ax.set_title("Detection stat for all files")
 > ax.set_ylim([0,1.5])
 > plt.xticks(rotation=90)
-> plt.savefig("DetectionStat.png")
 > plt.show()
 > ~~~
 > {: .language-python}
 {: .solution}
 
-We now have a number for each of our files resulting in the follwoing plot.
+We now have a number for each of our files resulting in the following plot.
 
 ![Detection Statistic]({{page.root}}{% link fig/DetectionStat.png %})
 
 > ## Discuss
 > - Which of the above files have the feature of interest?
-> - At what level of detection statstic do we decide that we have a detection?
+> - At what level of detection statistic do we decide that we have a detection?
 > 
-> Discuss amoung yourselves and add some notes to the [etherpad]({{site.etherpad}})
+> Discuss among yourselves and add some notes to the [etherpad]({{site.etherpad}})
 >
-{: .discusison}
+{: .discussion}
 
 
 ## Determining signal vs noise
@@ -590,15 +622,15 @@ There are a couple of ways that we can do this:
 2. Simulate new data that is just noise
 3. Remove or obscure the signal in our existing data
 
-Of the above: (1) could be costly as it could require extra observations, or time consuming because we have to process a lot more data, (2) is only effective if we have a really good understanding of the noise which can be as difficult as understanding the signal iteslf.
+Of the above: (1) could be costly as it could require extra observations, or time consuming because we have to process a lot more data, (2) is only effective if we have a really good understanding of the noise which can be as difficult as understanding the signal itself.
 
-Let's investigate option 3 and then we'll come back to option 1.
+Let's investigate option 1 and then we'll come back to option 3.
 
-Within our TODO directory there is also a set of files which are known to have no signal present.
+Within our `data/part2` directory there is also a set of files in which and expert has determined there is no signal present.
 
 > ## Process all the files in the part2 directory
 > Based on the code above:
-> - compute the detection satistic for all the files in the `data/part2` directory
+> - compute the detection statistic for all the files in the `data/part2` directory
 > - save the results in a data frame called `nullresults`
 > - plot the results
 >
@@ -619,7 +651,7 @@ Let's try this out now.
 > ## Modify the proces_file function
 > Modify the function so that:
 > - it has an optional parameter `flip` and is default set to `False`
-> - if the `flip` parameter is `True` then the data will be inverted after reading
+> - if the `flip` parameter is `True` then the data will be inverted after reading (either time or distance axis)
 > - all other processing should then proceed as normal.
 >
 > > ## My solution
@@ -687,16 +719,15 @@ results_flipped = get_results(flip=True)
 
 > ## Plotting code
 > ~~~
-> fig, ax = plt.subplots(figsize=(15,9))
+> fig, ax = plt.subplots()
 > ax.plot(results['filename'], results['stat'], label="Feature")
 > ax.plot(results_flipped['filename'], results_flipped['stat'], > label="No Feature")
-> ax.hlines(threshold,xmin = ax.get_xlim()[0], xmax = ax.get_xlim()[1], color='red', label='3σ detection threshold')
+> ax.hlines(threshold, xmin=ax.get_xlim()[0], xmax=ax.get_xlim()[1], color='red', label='3σ detection threshold')
 > ax.set_xlabel("Dataset")
 > ax.set_ylabel("Detection Statistic")
 > ax.set_ylim([0,1.5])
 > plt.xticks(rotation=90)
 > ax.legend()
-> plt.savefig('DetectionStat_Flipped.png')
 > plt.show()
 > ~~~
 > {: .language-python}
