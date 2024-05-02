@@ -99,14 +99,14 @@ Finally, you can use the Jupyter extension to [VSCode](https://code.visualstudio
 
 The file we are looking for is a record of average Sunspot counts per month since 1749.
 The data has been compiled, calibrated, and aggregated already, and is available on [kaggle](https://www.kaggle.com/datasets/robervalt/sunspots/data).
-To download the datset we could either register an account on Kaggle or use the kaggle python module.
+To download the dataset we could either register an account on Kaggle or use the kaggle python module.
 
 > ## Use kaggle to download the data
 > ~~~
-> kaggle datasets download -d robervalt/sunspots
-> unzip sunspots.zip
+> !kaggle datasets download -d robervalt/sunspots
+> !unzip sunspots.zip
 > ~~~
-> {: .language-bash}
+> {: .language-python}
 {: .challenge}
 
 
@@ -548,12 +548,12 @@ Use the following as a template and experiment from there.
 # Make a series of splits for the data
 tscv = TimeSeriesSplit(n_splits=5)
 scores = []
+fig, ax = plt.subplots(5,1, sharey=True, sharex=True)
 
 # Train on longer and longer subsets of the data
-for train_index, test_index in tscv.split(train):
+for i, (train_index, test_index) in enumerate(tscv.split(train)):
     print(f"Training on the first {len(train_index)} samples, testing on the next {len(test_index)} samples")
     train_data, test_data = data.iloc[train_index], data.iloc[test_index]
-    
     # create our model, fit, and predict
     model = AutoReg(train_data, lags=all_lags_sorted[:10], seasonal=True, period=12*11)
     model_fit = model.fit()
@@ -563,6 +563,15 @@ for train_index, test_index in tscv.split(train):
     mse = mean_squared_error(test_data, predictions)
     scores.append(mse)
     
+    # make some plots so we can see what is happening
+    ax[i].plot(train_data, color = 'blue')
+    ax[i].plot(test_data, color='lightblue')
+    ax[i].plot(predictions, color='orange')
+    ax[i].annotate(f'MSE: {mse:.0f}', xy=('1970', 250))
+
+plt.savefig("CrossVal.png")
+plt.show()
+
 # this is our score averaged over all the different splints
 avg_score = np.mean(scores)
 std_score = np.std(scores)
@@ -571,6 +580,9 @@ print(f"Scores during cross validatiaon {scores}")
 print(f"Summary score is {avg_score:.2f}+/-{std_score:.2f}")
 ~~~
 {: .language-python}
+
+
+![cross validation]({{page.root}}{% link fig/CrossVal.png %})]
 
 
 > ## Discuss
