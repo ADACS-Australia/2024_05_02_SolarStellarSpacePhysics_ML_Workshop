@@ -255,7 +255,7 @@ Which gives the following:
 > - Re-run the above code with different values of `lag` and see what behaviors are present
 > - Describe and discuss the behaviors with your peers
 > - See if you can explain some of these behaviors
-> - Make a note of some interesting lags in the [etherpad]({{site.etherpad}})
+> - Make a note of some interesting lags in the [etherpad]({{site.ether_pad}})
 > 
 {: .challenge}
 
@@ -385,7 +385,7 @@ As you can see, the model fitting and predicting is just 3 lines of code, evalua
 > 
 > Experiment with different values of `lag` and see if you get better results.
 >
-> If you get better results for higher lags make a note in the [etherpad]({{site.etherpad}})
+> If you get better results for higher lags make a note in the [etherpad]({{site.ether_pad}})
 >
 {: .discussion}
 
@@ -479,7 +479,7 @@ print(all_lags_sorted)
 > It is probably a good idea to copy/paste your previous notebook cell so that you can swap back and forth between the results.
 >
 > Do your new results look better than the previous ones?
-> Comment in the [etherpad]({{site.etherpad}})
+> Comment in the [etherpad]({{site.ether_pad}})
 > 
 {: .challenge}
 
@@ -518,7 +518,7 @@ Alternatively we could find, fit, and then subtract the seasonal component from 
 >
 > Does the MSE agree with your assessment?
 >
-> Comment in the [etherpad]({{site.etherpad}})
+> Comment in the [etherpad]({{site.ether_pad}})
 > 
 {: .challenge}
 
@@ -578,7 +578,7 @@ print(f"Summary score is {avg_score:.2f}+/-{std_score:.2f}")
 >
 > What do you notice about the mean/std of the score, and the MES of each of the "splits"?
 >
-> Discuss with your peers and make notes in the [etherpad]({{site.etherpad}})
+> Discuss with your peers and make notes in the [etherpad]({{site.ether_pad}})
 > 
 {: .discussion}
 
@@ -630,7 +630,7 @@ print(f"The best lags was {best_lag_order} with an average MSE of {best_score:.2
 > ## Determine the ideal number of lags we should use
 > Use the above code templates to figure out how many lags we need to get a good result.
 >
-> Once you have an answer share the number and MSE in the [etherpad]({{site.etherpad}})
+> Once you have an answer share the number and MSE in the [etherpad]({{site.ether_pad}})
 > 
 {: .challenge}
 
@@ -699,7 +699,7 @@ print(f"The best period was {best_period} with an average MSE of {best_period_sc
 > ## Determine the ideal period for the solar cycle
 > Use the above code templates to figure out the length of the solar cycle  we need to get a good result.
 >
-> Once you have an answer share the number and MSE in the [etherpad]({{site.etherpad}})
+> Once you have an answer share the number and MSE in the [etherpad]({{site.ether_pad}})
 > 
 {: .challenge}
 

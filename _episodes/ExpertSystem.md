@@ -313,7 +313,7 @@ cropped_data = scaled_data[:,25:75]
 > ~~~
 > {: .language-python}
 >
-> Once you have a relationship between t and d post your best result in the [etherpad]({{site.etherpad}}).
+> Once you have a relationship between t and d post your best result in the [etherpad]({{site.ether_pad}}).
 {: .challenge}
 
 My example is below:
@@ -397,7 +397,7 @@ print(f"Peak of {peak_val:5.2f} found at {peak_index}")
 > - Our shuffle/roll method takes a smooth function of t vs d, and rounds the values to `int`s so that we can do the roll with `numpy`. How might we make this projection step smoother to further enhance our signal once we sum along the distance axis?
 > - What other defects or possible improvements can you identify in our work so far?
 >
-> Discuss some ideas with your peers and add some suggestions to the [etherpad]({{site.etherpad}})
+> Discuss some ideas with your peers and add some suggestions to the [etherpad]({{site.ether_pad}})
 {: .discussion}
 
 ## Creating a signal detection metric
@@ -611,7 +611,7 @@ We now have a number for each of our files resulting in the following plot.
 > - Which of the above files have the feature of interest?
 > - At what level of detection statistic do we decide that we have a detection?
 > 
-> Discuss among yourselves and add some notes to the [etherpad]({{site.etherpad}})
+> Discuss among yourselves and add some notes to the [etherpad]({{site.ether_pad}})
 >
 {: .discussion}
 
@@ -766,6 +766,6 @@ Some suggestions for improvements are:
 
 ## Wrap up
 
-Using the [etherpad]({{site.etherpad}}) make some notes about other ways that you would suggest improving the algorithm.
+Using the [etherpad]({{site.ether_pad}}) make some notes about other ways that you would suggest improving the algorithm.
 If you have ideas about python packages or functions that might be useful then note them down as well.
 
